@@ -1,0 +1,1 @@
+declare type FilterPick<T, U> = Pick<T, Exclude<keyof T, U>>
