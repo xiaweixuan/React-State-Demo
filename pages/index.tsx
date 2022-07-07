@@ -8,7 +8,7 @@ const Home: NextPage = () => {
   const router = useRouter()
 
   useEffect(() => {
-    setTimeout(setAnimate.bind(null, true), 0)
+    setTimeout(setAnimate.bind(null, true), 50)
     return () => setAnimate(false)
   }, [])
 

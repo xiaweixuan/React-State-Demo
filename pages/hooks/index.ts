@@ -1,4 +1,4 @@
-import { useReducer, Key, useMemo, useState } from 'react'
+import { useReducer, Key, useMemo, useState, useEffect, useCallback } from 'react'
 
 /**
  * useById
@@ -63,7 +63,7 @@ function reducer<T extends StateItemProps>(
   }
 }
 
-export function useById<T extends StateItemProps>(): FnReturnType<T> {
+function useById<T extends StateItemProps>(): FnReturnType<T> {
   const [state, dispatch] = useReducer<ReducerProps<StatesProps<T>, Action<T>>>(
     reducer,
     initialState,
@@ -105,7 +105,7 @@ export function useById<T extends StateItemProps>(): FnReturnType<T> {
 /**
  * useModalParams
 */
-export function useModalParams<T>() {
+function useModalParams<T>() {
   const [current, setCurrent] = useState<T>()
   const [visible, setVisible] = useState<boolean>(false)
 
@@ -130,3 +130,78 @@ export function useModalParams<T>() {
 
   return [params, action] as const
 }
+
+/**
+ * useQueryParams
+*/
+function useQueryParams(
+  key: string,
+  defaultValue?: number | string
+): [string, (newValue: number | string) => void]
+
+function useQueryParams<T>(
+  key: string,
+  defaultValue: number | string,
+  transfinferorm: (v: string) => T
+): [T, (newValue: number | string) => void]
+
+function useQueryParams(
+  key: string,
+  defaultValue?: number | string,
+  transfinferorm?: any,
+): any {
+  const [value, setValue] = useState<any>(() => {
+    const params = new URLSearchParams(window.location.search)
+    if (params.has(key)) {
+      const value = params.get(key) ?? ''
+      return transfinferorm?.(value) ?? value
+    } else {
+      params.set(key, String(defaultValue))
+      history.replaceState(null, '', `?${params.toString()}`)
+      return transfinferorm?.(String(defaultValue)) ?? String(defaultValue)
+    }
+  })
+
+  const handle = useCallback((newValue: number | string) =>
+    setValue(() => {
+      const params = new URLSearchParams(window.location.search)
+      params.set(key, String(newValue))
+      history.replaceState(null, '', `?${params.toString()}`)
+      return transfinferorm?.(String(newValue)) ?? String(newValue)
+    }),
+    [setValue, key, transfinferorm]
+  )
+
+  return [value, handle]
+}
+
+/**
+ * usePagingParams
+*/
+function usePagingParams(num: number, size: number, key: string) {
+  const [pageNum, setNum] = useQueryParams('page_num', num, Number)
+  const [pageSize, setSize] = useQueryParams('page_size', size, Number)
+  const [keyword, setKeyword] = useQueryParams('keyword', key)
+
+  const pagination = useMemo(() => ({
+    current: pageNum,
+    pageSize: pageSize,
+    showSizeChanger: true,
+    onChange: (num: number, size: number) => {
+      setNum(size !== pageSize ? 1 : num)
+      setSize(size)
+    }
+  }), [pageNum, setNum, pageSize, setSize])
+
+  return {
+    pageNum,
+    setNum,
+    pageSize,
+    setSize,
+    keyword,
+    setKeyword,
+    pagination,
+  }
+}
+
+export { useQueryParams, useModalParams, useById, usePagingParams }

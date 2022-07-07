@@ -1,5 +1,24 @@
 import { useCallback, useState } from "react"
 
+export function usePagingTask() {
+  const [loading, setLoading] = useState(false)
+
+  const operate = useCallback(
+    (page_num: number, page_size: number, keyword: string) => {
+      setLoading(true)
+      return fetch(`/api/tasks?page_num=${page_num}&page_size=${page_size}&keyword=${keyword}`)
+        .then(res => {
+          setLoading(false)
+          return res.json()
+        })
+        .then(({ code, data }) => !code ? data : { total: 0, list: [] })
+    },
+    [setLoading]
+  )
+
+  return [operate, loading] as const
+}
+
 export function useTask() {
   const [loading, setLoading] = useState(false)
 
