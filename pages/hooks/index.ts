@@ -151,22 +151,34 @@ function useQueryParams(
   transfinferorm?: any,
 ): any {
   const [value, setValue] = useState<any>(() => {
-    const params = new URLSearchParams(window.location.search)
+    let search
+    if (typeof window !== 'undefined') {
+      search = window.location.search
+    }
+    const params = new URLSearchParams(search)
     if (params.has(key)) {
       const value = params.get(key) ?? ''
       return transfinferorm?.(value) ?? value
     } else {
       params.set(key, String(defaultValue))
-      history.replaceState(null, '', `?${params.toString()}`)
+      if (typeof history !== 'undefined') {
+        history.replaceState(null, '', `?${params.toString()}`)
+      }
       return transfinferorm?.(String(defaultValue)) ?? String(defaultValue)
     }
   })
 
   const handle = useCallback((newValue: number | string) =>
     setValue(() => {
-      const params = new URLSearchParams(window.location.search)
+      let search
+      if (typeof window !== 'undefined') {
+        search = window.location.search
+      }
+      const params = new URLSearchParams(search)
       params.set(key, String(newValue))
-      history.replaceState(null, '', `?${params.toString()}`)
+      if (typeof history !== 'undefined') {
+        history.replaceState(null, '', `?${params.toString()}`)
+      }
       return transfinferorm?.(String(newValue)) ?? String(newValue)
     }),
     [setValue, key, transfinferorm]
